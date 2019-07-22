@@ -800,7 +800,6 @@ def main():
 
     cross_compiling = args.arm or args.arm64 or args.android
 
-    run_subprocess(os.path.join(source_dir, 'tools', 'ci_build', 'github', 'android', 'start_android_emulator.sh'))
     # if there was no explicit argument saying what to do, default to update, build and test (for native builds).
     if (args.update == False and args.clean == False and args.build == False and args.test == False):
         log.debug("Defaulting to running update, build [and test for native builds].")
@@ -828,6 +827,7 @@ def main():
     build_dir = args.build_dir
     script_dir = os.path.realpath(os.path.dirname(__file__))
     source_dir = os.path.normpath(os.path.join(script_dir, "..", ".."))
+    run_subprocess(os.path.join(source_dir, 'tools', 'ci_build', 'github', 'android', 'start_android_emulator.sh'))
 
     # if using cuda, setup cuda paths and env vars
     cuda_home, cudnn_home = setup_cuda_vars(args)
