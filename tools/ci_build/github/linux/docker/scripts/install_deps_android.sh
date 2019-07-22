@@ -11,11 +11,12 @@ cmake --version
 # Download Android SDK Manager
 wget -qO- -O temp.zip https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && unzip -oq temp.zip -d /android-sdk && rm temp.zip
 
-ls -l /android-sdk/tools/bin/
-chmod +x /android-sdk/tools/bin/sdkmanager
-
 echo "y" | /android-sdk/tools/bin/sdkmanager --install 'system-images;android-28;google_apis;x86_64'
 echo "y" | /android-sdk/tools/bin/sdkmanager --install 'platform-tools'
+
+chmod a+x /android-sdk/tools/bin/avdmanager
+chmod a+x /android-sdk/emulator/emulator
+chmod a+x /android-sdk/platform-tools/adb
 
 mkdir /android-sdk/platforms
 
