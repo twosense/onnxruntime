@@ -541,7 +541,6 @@ def run_onnxruntime_tests(args, source_dir, ctest_path, build_dir, configs, enab
         cwd = get_config_build_dir(build_dir, config)
         android_x86_64 = args.android_abi == 'x86_64'
         if android_x86_64:
-            # run_subprocess(os.path.join(source_dir, 'tools', 'ci_build', 'github', 'android', 'start_android_emulator.sh'))
             adb_push(source_dir, 'testdata', '/data/local/tmp/', cwd=cwd)
             adb_push(source_dir, os.path.join(source_dir, 'cmake', 'external', 'onnx', 'onnx', 'backend', 'test'), '/data/local/tmp/', cwd=cwd)
             adb_push(source_dir, 'onnxruntime_test_all', '/data/local/tmp/', cwd=cwd)
@@ -801,6 +800,7 @@ def main():
 
     cross_compiling = args.arm or args.arm64 or args.android
 
+    run_subprocess(os.path.join(source_dir, 'tools', 'ci_build', 'github', 'android', 'start_android_emulator.sh'))
     # if there was no explicit argument saying what to do, default to update, build and test (for native builds).
     if (args.update == False and args.clean == False and args.build == False and args.test == False):
         log.debug("Defaulting to running update, build [and test for native builds].")
