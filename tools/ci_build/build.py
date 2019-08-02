@@ -552,6 +552,7 @@ def run_onnxruntime_tests(args, source_dir, ctest_path, build_dir, configs, enab
             adb_push(source_dir, os.path.join(source_dir, 'cmake', 'external', 'onnx', 'onnx', 'backend', 'test'), '/data/local/tmp/', cwd=cwd)
             adb_push(source_dir, 'onnxruntime_test_all', '/data/local/tmp/', cwd=cwd)
             adb_push(source_dir, 'onnx_test_runner', '/data/local/tmp/', cwd=cwd)
+            adb_shell('ls /data/local/tmp/')
             adb_shell('cd /data/local/tmp && /data/local/tmp/onnxruntime_test_all')
             if args.use_dnnlibrary:
                 adb_shell('cd /data/local/tmp && /data/local/tmp/onnx_test_runner -e nnapi /data/local/tmp/test')
