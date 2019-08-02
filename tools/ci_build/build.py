@@ -535,7 +535,7 @@ def setup_tensorrt_vars(args):
 
     return tensorrt_home
 
-def adb_push(source_dir, src, dest, **kwargs):
+def adb_push_dir(source_dir, src, dest, **kwargs):
     return run_subprocess([os.path.join(source_dir, 'tools', 'ci_build', 'github', 'android', 'adb-push.sh'), src, dest], **kwargs)
 
 def adb_shell(*args, **kwargs):
@@ -548,10 +548,9 @@ def run_onnxruntime_tests(args, source_dir, ctest_path, build_dir, configs, enab
         android_x86_64 = args.android_abi == 'x86_64'
         if android_x86_64:
             run_subprocess(os.path.join(source_dir, 'tools', 'ci_build', 'github', 'android', 'start_android_emulator.sh'))
-            adb_push(source_dir, 'testdata', '/data/local/tmp/', cwd=cwd)
-            adb_push(source_dir, os.path.join(source_dir, 'cmake', 'external', 'onnx', 'onnx', 'backend', 'test'), '/data/local/tmp/', cwd=cwd)
-            adb_push(source_dir, 'onnxruntime_test_all', '/data/local/tmp/', cwd=cwd)
-            adb_push(source_dir, 'onnx_test_runner', '/data/local/tmp/', cwd=cwd)
+            adb_push_dir(source_dir, 'testdata', '/data/local/tmp/', cwd=cwd)
+            adb_push_dir(source_dir, os.path.join(source_dir, 'cmake', 'external', 'onnx', 'onnx', 'backend', 'test'), '/data/local/tmp/', cwd=cwd)
+            run_subprocess(['adb', 'push', 'onnx_test_runner', 'onnxruntime_test_all', '/data/local/tmp/'], cwd=cwd)
             adb_shell('ls /data/local/tmp/')
             adb_shell('cd /data/local/tmp && /data/local/tmp/onnxruntime_test_all')
             if args.use_dnnlibrary:
