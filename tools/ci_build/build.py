@@ -554,7 +554,7 @@ def run_onnxruntime_tests(args, source_dir, ctest_path, build_dir, configs, enab
             adb_shell('ls /data/local/tmp/')
             adb_shell('cd /data/local/tmp && /data/local/tmp/onnxruntime_test_all')
             if args.use_dnnlibrary:
-                adb_shell('cd /data/local/tmp && /data/local/tmp/onnx_test_runner -e nnapi /data/local/tmp/test')
+                adb_shell('cd /data/local/tmp && /data/local/tmp/onnx_test_runner -e nnapi -c 1 -j 1 /data/local/tmp/test')
             else:
                 adb_shell('cd /data/local/tmp && /data/local/tmp/onnx_test_runner /data/local/tmp/test')
             continue
