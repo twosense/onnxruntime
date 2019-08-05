@@ -12,7 +12,7 @@ jobs:
       displayName: Install Android NDK
     - script: gsed -i 's/-g$//' $ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake
     - script: cat $ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake | grep "\-g"
-    - script: tools/ci_build/build.py --android --build_dir build --android_ndk $ANDROID_HOME/ndk-bundle --android_abi=x86_64 --skip_submodule_sync --parallel --use_dnnlibrary
+    - script: tools/ci_build/build.py --android --build_dir build --android_ndk $ANDROID_HOME/ndk-bundle --android_abi=x86_64 --skip_submodule_sync --parallel --use_dnnlibrary --update --build
       displayName: Build and Test on Android Emulator
     - task: CopyFiles@2
       inputs:
