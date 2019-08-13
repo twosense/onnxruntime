@@ -708,3 +708,7 @@ if (onnxruntime_BUILD_CSHARP)
 #  set_property(GLOBAL PROPERTY VS_DOTNET_TARGET_FRAMEWORK_VERSION "netstandard2.0")
   include(onnxruntime_csharp.cmake)
 endif()
+
+if (onnxruntime_BUILD_JNI)
+  include(onnxruntime_jni.cmake)
+endif()

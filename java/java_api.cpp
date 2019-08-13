@@ -1,4 +1,4 @@
-#include "jni_handle.h"
+#include "jni_helper.h"
 
 #include "onnxruntime_cxx_api.h"
 
@@ -41,7 +41,7 @@ Java_ml_microsoft_onnxruntime_Session_Run(JNIEnv* env, jobject obj /* this */,
 
     auto j_value = env->GetObjectArrayElement(j_input_values, i);
     auto value_ptr = getHandle<Value>(env, j_value);
-    input_values.push_back(*value_ptr);
+    input_values.push_back(std::move(*value_ptr));
   }
   std::vector<const char*> output_names;
   for (int i = 0; i < output_count; i++) {
@@ -51,6 +51,12 @@ Java_ml_microsoft_onnxruntime_Session_Run(JNIEnv* env, jobject obj /* this */,
   }
 
   auto output_values = session->Run(*run_options, input_names.data(), input_values.data(), input_count, output_names.data(), output_count);
+
+  // Restore input_values
+  for (int i = 0; i < input_count; i++) {
+    auto j_value = env->GetObjectArrayElement(j_input_values, i);
+    setHandle(env, j_value, std::move(input_values[i]));
+  }
 
   jclass cls = env->FindClass("ml/microsoft/onnxruntime/Value");
   auto j_value_arr = env->NewObjectArray(output_count, cls, nullptr);
