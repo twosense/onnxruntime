@@ -1,11 +1,10 @@
-package ml.microsoft.onnxruntime
+package ml.microsoft.onnxruntime;
 
-    class Value {
+public class Value {
   static {
     System.loadLibrary("onnxruntime_jni");
   }
-  public Value() {
-    initHandle();
+  private Value() {
   }
   @Override
   protected void finalize() throws Throwable {
@@ -13,6 +12,6 @@ package ml.microsoft.onnxruntime
     super.finalize();
   }
   private long nativeHandle;
-  private native void initHandle();
   public native void dispose();
+  public native static Value CreateFloatTensorFromData(AllocatorInfo allocatorInfo, float[] data, long[] shape);
 }

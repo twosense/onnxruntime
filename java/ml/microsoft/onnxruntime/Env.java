@@ -1,10 +1,10 @@
 package ml.microsoft.onnxruntime;
 
-public class SessionOptions {
+public class Env {
   static {
     System.loadLibrary("onnxruntime_jni");
   }
-  public SessionOptions() {
+  public Env() {
     initHandle();
   }
   @Override
