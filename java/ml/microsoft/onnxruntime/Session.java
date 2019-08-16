@@ -15,5 +15,5 @@ public class Session {
   private long nativeHandle;
   private native void initHandle(Env env, String modelPath, SessionOptions sessionOptions);
   public native void dispose();
-  public native Value[] Run(RunOptions runOptions, String[] input_names, Value[] input_values, String[] output_names);
+  public native Value[] run(RunOptions runOptions, String[] input_names, Value[] input_values, String[] output_names);
 }

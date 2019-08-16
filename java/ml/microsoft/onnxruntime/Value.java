@@ -13,5 +13,5 @@ public class Value {
   }
   private long nativeHandle;
   public native void dispose();
-  public native static Value CreateFloatTensorFromData(AllocatorInfo allocatorInfo, float[] data, long[] shape);
+  public native static Value createFloatTensorFromData(AllocatorInfo allocatorInfo, float[] data, long[] shape);
 }
