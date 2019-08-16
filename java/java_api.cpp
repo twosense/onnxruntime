@@ -2,7 +2,8 @@
 
 #include "onnxruntime_cxx_api.h"
 
-using namespace Ort;
+#include <android/log.h>
+
 extern "C" JNIEXPORT void JNICALL
 Java_ml_microsoft_onnxruntime_Env_initHandle(JNIEnv* env, jobject obj /* this */) {
   // Ort::Env* ort_env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "test");
@@ -27,7 +28,6 @@ Java_ml_microsoft_onnxruntime_Session_initHandle(JNIEnv* env, jobject obj /* thi
   auto* ort_env = getHandle<OrtEnv>(env, j_ort_env);
   const auto* options = getHandle<OrtSessionOptions>(env, j_options);
   OrtSession* session;
-  // auto* session = new Session(ort_env, JStringtoStdString(env, j_model_path).c_str(), options);
   ORT_THROW_ON_ERROR(OrtCreateSession(ort_env, 
               JStringtoStdString(env, j_model_path).c_str(), options, &session));
   setHandle(env, obj, session);
@@ -40,6 +40,22 @@ Java_ml_microsoft_onnxruntime_SessionOptions_initHandle(JNIEnv* env, jobject obj
 
   setHandle(env, obj, session_options);
 }
+
+#define DEFINE_DISPOSE(class_name)                                                                \
+  extern "C" JNIEXPORT void JNICALL                                                               \
+      Java_ml_microsoft_onnxruntime_##class_name##_dispose(JNIEnv* env, jobject obj /* this */) { \
+    auto handle = getHandle<Ort##class_name>(env, obj);                                           \
+    OrtRelease##class_name(handle);                                                               \
+    handle = nullptr;                                                                             \
+  }
+
+DEFINE_DISPOSE(SessionOptions);
+DEFINE_DISPOSE(Session);
+DEFINE_DISPOSE(RunOptions);
+DEFINE_DISPOSE(Env);
+DEFINE_DISPOSE(Value);
+
+#undef DEFINE_DISPOSE
 
 extern "C" JNIEXPORT void JNICALL
 Java_ml_microsoft_onnxruntime_SessionOptions_setThreadPoolSize(JNIEnv* env, jobject obj /* this */,
@@ -139,17 +155,17 @@ Java_ml_microsoft_onnxruntime_Session_run(JNIEnv* env, jobject obj /* this */,
 // }
 //
 extern "C" JNIEXPORT jobject JNICALL
-Java_ml_microsoft_onnxruntime_Value_createFloatTensorByData(JNIEnv* env, jobject obj /* this */,
-                                                            jobject j_allocator_info, 
-                                                            jfloatArray j_data, jlongArray j_shape) {
+Java_ml_microsoft_onnxruntime_Value_createFloatTensorFromData(JNIEnv* env, jobject /* this */,
+                                                              jobject j_allocator_info,
+                                                              jfloatArray j_data, jlongArray j_shape) {
   auto* allocator_info = getHandle<OrtAllocatorInfo>(env, j_allocator_info);
   const auto data_ptr = env->GetFloatArrayElements(j_data, nullptr);
   const auto data_len = env->GetArrayLength(j_data);
   const auto shape_ptr = env->GetLongArrayElements(j_shape, nullptr);
   const auto shape_len = env->GetArrayLength(j_shape);
   OrtValue* out;
-  ORT_THROW_ON_ERROR(OrtCreateTensorWithDataAsOrtValue(allocator_info, data_ptr, data_len, 
-              shape_ptr, shape_len, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &out));
+  ORT_THROW_ON_ERROR(OrtCreateTensorWithDataAsOrtValue(allocator_info, data_ptr, data_len * sizeof(float),
+                                                       shape_ptr, shape_len, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &out));
   jclass cls = env->FindClass("ml/microsoft/onnxruntime/Value");
   jobject j_value = env->AllocObject(cls);
   setHandle(env, j_value, out);
@@ -157,11 +173,47 @@ Java_ml_microsoft_onnxruntime_Value_createFloatTensorByData(JNIEnv* env, jobject
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_ml_microsoft_onnxruntime_AllocatorInfo_createCpu(JNIEnv* env, jobject obj /* this */,
+Java_ml_microsoft_onnxruntime_Value_getTensorMutableData(JNIEnv* env, jobject obj /* this */) {
+  auto* value = getHandle<OrtValue>(env, obj);
+  uint8_t* out;
+  ORT_THROW_ON_ERROR(OrtGetTensorMutableData(value, (void**)&out));
+  size_t count;
+  OrtTensorTypeAndShapeInfo* info;
+  ORT_THROW_ON_ERROR(OrtGetTensorTypeAndShape(value, &info));
+  ORT_THROW_ON_ERROR(OrtGetTensorShapeElementCount(info, &count));
+  // __android_log_print(ANDROID_LOG_INFO, "Tag", "0: %f", *reinterpret_cast<float *>(out));
+  auto byte_buf = env->NewDirectByteBuffer(out, count * 4);
+  return byte_buf;
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_ml_microsoft_onnxruntime_Value_getTensorTypeAndShapeInfo(JNIEnv* env, jobject obj /* this */) {
+  auto* value = getHandle<OrtValue>(env, obj);
+  OrtTensorTypeAndShapeInfo* info;
+  ORT_THROW_ON_ERROR(OrtGetTensorTypeAndShape(value, &info));
+
+  jclass cls = env->FindClass("ml/microsoft/onnxruntime/TensorTypeAndShapeInfo");
+  jobject j_value = env->AllocObject(cls);
+  setHandle(env, j_value, info);
+  return j_value;
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_ml_microsoft_onnxruntime_TensorTypeAndShapeInfo_getElementCount(JNIEnv* env, jobject obj /* this */) {
+  auto* info = getHandle<OrtTensorTypeAndShapeInfo>(env, obj);
+
+  size_t count;
+  ORT_THROW_ON_ERROR(OrtGetTensorShapeElementCount(info, &count));
+
+  return static_cast<jlong>(count);
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_ml_microsoft_onnxruntime_AllocatorInfo_createCpu(JNIEnv* env, jobject /* this */,
                                                       jobject j_allocator_type, jobject j_mem_type) {
   jint allocator_type_value = env->CallIntMethod(j_allocator_type,
                                                  env->GetMethodID(
-                                                     env->FindClass("ml/microsoft/onnxruntime/AllocatorInfo"), 
+                                                     env->FindClass("ml/microsoft/onnxruntime/AllocatorType"),
                                                      "ordinal", "()I"));
   jint mem_type_value = env->CallIntMethod(j_mem_type,
                                            env->GetMethodID(
