@@ -31,4 +31,18 @@ inline std::string JStringtoStdString(JNIEnv* env, jstring j_str) {
   return native_str;
 }
 
+inline jint enumToInt(JNIEnv* env, jobject enum_obj, const char* class_name) {
+  return env->CallIntMethod(enum_obj,
+                            env->GetMethodID(
+                                env->FindClass(class_name),
+                                "ordinal", "()I"));
+}
+
+inline jobject newObject(JNIEnv* env, const char* class_name, void* handle) {
+  jclass cls = env->FindClass(class_name);
+  jobject j_value = env->AllocObject(cls);
+  setHandle(env, j_value, handle);
+  return j_value;
+}
+
 #endif

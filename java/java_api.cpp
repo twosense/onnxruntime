@@ -1,14 +1,16 @@
 #include "jni_helper.h"
 
 #include "onnxruntime_cxx_api.h"
+#include <core/providers/nnapi/nnapi_provider_factory.h>
 
 #include <android/log.h>
 
 extern "C" JNIEXPORT void JNICALL
-Java_ml_microsoft_onnxruntime_Env_initHandle(JNIEnv* env, jobject obj /* this */) {
-  // Ort::Env* ort_env = new Ort::Env(ORT_LOGGING_LEVEL_WARNING, "test");
+Java_ml_microsoft_onnxruntime_Env_initHandle(JNIEnv* env, jobject obj /* this */, jobject j_logging_level, jstring logid) {
   OrtEnv* ort_env;
-  ORT_THROW_ON_ERROR(OrtCreateEnv(ORT_LOGGING_LEVEL_WARNING, "test", &ort_env));
+  const auto logging_level_value = enumToInt(env, j_logging_level, "ml/microsoft/onnxruntime/LoggingLevel");
+  ORT_THROW_ON_ERROR(OrtCreateEnv(static_cast<OrtLoggingLevel>(logging_level_value),
+                                  JStringtoStdString(env, logid).c_str(), &ort_env));
   setHandle(env, obj, ort_env);
 }
 
@@ -95,6 +97,12 @@ Java_ml_microsoft_onnxruntime_SessionOptions_disableCpuMemArena(JNIEnv* env, job
     ORT_THROW_ON_ERROR(OrtDisableCpuMemArena(session_options));
 }
 
+extern "C" JNIEXPORT void JNICALL
+Java_ml_microsoft_onnxruntime_SessionOptions_appendNnapiExecutionProvider(JNIEnv* env, jobject obj /* this */) {
+  auto* session_options = getHandle<OrtSessionOptions>(env, obj);
+  ORT_THROW_ON_ERROR(OrtSessionOptionsAppendExecutionProvider_Nnapi(session_options));
+}
+
 extern "C" JNIEXPORT jobjectArray JNICALL
 Java_ml_microsoft_onnxruntime_Session_run(JNIEnv* env, jobject obj /* this */,
                                           jobject j_run_options, jobjectArray j_input_names, 
@@ -125,12 +133,11 @@ Java_ml_microsoft_onnxruntime_Session_run(JNIEnv* env, jobject obj /* this */,
   ORT_THROW_ON_ERROR(OrtRun(session, run_options, input_names.data(), input_values.data(), 
               input_count, output_names.data(), output_count, output_values.data()));
 
-  jclass cls = env->FindClass("ml/microsoft/onnxruntime/Value");
+  const char* class_name = "ml/microsoft/onnxruntime/Value";
+  jclass cls = env->FindClass(class_name);
   auto j_value_arr = env->NewObjectArray(output_count, cls, nullptr);
   for (int i = 0; i < output_count; i++) {
-    jobject j_value = env->AllocObject(cls);
-    setHandle(env, j_value, output_values[i]);
-    env->SetObjectArrayElement(j_value_arr, i, j_value);
+    env->SetObjectArrayElement(j_value_arr, i, newObject(env, class_name, output_values[i]));
   }
   return j_value_arr;
 }
@@ -155,7 +162,7 @@ Java_ml_microsoft_onnxruntime_Session_run(JNIEnv* env, jobject obj /* this */,
 // }
 //
 extern "C" JNIEXPORT jobject JNICALL
-Java_ml_microsoft_onnxruntime_Value_createFloatTensorFromData(JNIEnv* env, jobject /* this */,
+Java_ml_microsoft_onnxruntime_Value_createFloatTensorWithData(JNIEnv* env, jobject /* this */,
                                                               jobject j_allocator_info,
                                                               jfloatArray j_data, jlongArray j_shape) {
   auto* allocator_info = getHandle<OrtAllocatorInfo>(env, j_allocator_info);
@@ -166,10 +173,7 @@ Java_ml_microsoft_onnxruntime_Value_createFloatTensorFromData(JNIEnv* env, jobje
   OrtValue* out;
   ORT_THROW_ON_ERROR(OrtCreateTensorWithDataAsOrtValue(allocator_info, data_ptr, data_len * sizeof(float),
                                                        shape_ptr, shape_len, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &out));
-  jclass cls = env->FindClass("ml/microsoft/onnxruntime/Value");
-  jobject j_value = env->AllocObject(cls);
-  setHandle(env, j_value, out);
-  return j_value;
+  return newObject(env, "ml/microsoft/onnxruntime/Value", out);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -181,7 +185,6 @@ Java_ml_microsoft_onnxruntime_Value_getTensorMutableData(JNIEnv* env, jobject ob
   OrtTensorTypeAndShapeInfo* info;
   ORT_THROW_ON_ERROR(OrtGetTensorTypeAndShape(value, &info));
   ORT_THROW_ON_ERROR(OrtGetTensorShapeElementCount(info, &count));
-  // __android_log_print(ANDROID_LOG_INFO, "Tag", "0: %f", *reinterpret_cast<float *>(out));
   auto byte_buf = env->NewDirectByteBuffer(out, count * 4);
   return byte_buf;
 }
@@ -192,10 +195,7 @@ Java_ml_microsoft_onnxruntime_Value_getTensorTypeAndShapeInfo(JNIEnv* env, jobje
   OrtTensorTypeAndShapeInfo* info;
   ORT_THROW_ON_ERROR(OrtGetTensorTypeAndShape(value, &info));
 
-  jclass cls = env->FindClass("ml/microsoft/onnxruntime/TensorTypeAndShapeInfo");
-  jobject j_value = env->AllocObject(cls);
-  setHandle(env, j_value, info);
-  return j_value;
+  return newObject(env, "ml/microsoft/onnxruntime/TensorTypeAndShapeInfo", info);
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -211,20 +211,11 @@ Java_ml_microsoft_onnxruntime_TensorTypeAndShapeInfo_getElementCount(JNIEnv* env
 extern "C" JNIEXPORT jobject JNICALL
 Java_ml_microsoft_onnxruntime_AllocatorInfo_createCpu(JNIEnv* env, jobject /* this */,
                                                       jobject j_allocator_type, jobject j_mem_type) {
-  jint allocator_type_value = env->CallIntMethod(j_allocator_type,
-                                                 env->GetMethodID(
-                                                     env->FindClass("ml/microsoft/onnxruntime/AllocatorType"),
-                                                     "ordinal", "()I"));
-  jint mem_type_value = env->CallIntMethod(j_mem_type,
-                                           env->GetMethodID(
-                                               env->FindClass("ml/microsoft/onnxruntime/MemType"), 
-                                               "ordinal", "()I"));
+  jint allocator_type_value = enumToInt(env, j_allocator_type, "ml/microsoft/onnxruntime/AllocatorType");
+  jint mem_type_value = enumToInt(env, j_mem_type, "ml/microsoft/onnxruntime/MemType");
   OrtAllocatorInfo* allocator_info;
 
   ORT_THROW_ON_ERROR(OrtCreateCpuAllocatorInfo(static_cast<OrtAllocatorType>(allocator_type_value), 
               static_cast<OrtMemType>(mem_type_value), &allocator_info));
-  jclass cls = env->FindClass("ml/microsoft/onnxruntime/AllocatorInfo");
-  jobject j_value = env->AllocObject(cls);
-  setHandle(env, j_value, allocator_info);
-  return j_value;
+  return newObject(env, "ml/microsoft/onnxruntime/AllocatorInfo", allocator_info);
 }
