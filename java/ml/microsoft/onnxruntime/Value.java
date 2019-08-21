@@ -1,8 +1,10 @@
 package ml.microsoft.onnxruntime;
 
+import java.nio.ByteBuffer;
+
 public class Value {
   static {
-    System.loadLibrary("onnxruntime_jni");
+    System.loadLibrary("onnxruntime-jni");
   }
   private Value() {
   }
@@ -13,5 +15,7 @@ public class Value {
   }
   private long nativeHandle;
   public native void dispose();
-  public native static Value createFloatTensorFromData(AllocatorInfo allocatorInfo, float[] data, long[] shape);
+  public native static Value createTensor(AllocatorInfo allocatorInfo, ByteBuffer data, long[] shape, TensorElementDataType type);
+  public native ByteBuffer getTensorMutableData();
+  public native TensorTypeAndShapeInfo getTensorTypeAndShapeInfo();
 }

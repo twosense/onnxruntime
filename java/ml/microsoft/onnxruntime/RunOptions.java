@@ -2,7 +2,7 @@ package ml.microsoft.onnxruntime;
 
 public class RunOptions {
   static {
-    System.loadLibrary("onnxruntime_jni");
+    System.loadLibrary("onnxruntime-jni");
   }
   public RunOptions() {
     initHandle();

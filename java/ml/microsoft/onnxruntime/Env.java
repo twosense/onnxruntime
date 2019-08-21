@@ -2,10 +2,10 @@ package ml.microsoft.onnxruntime;
 
 public class Env {
   static {
-    System.loadLibrary("onnxruntime_jni");
+    System.loadLibrary("onnxruntime-jni");
   }
-  public Env() {
-    initHandle();
+  public Env(LoggingLevel loggingLevel, String logId) {
+    initHandle(loggingLevel, logId);
   }
   @Override
   protected void finalize() throws Throwable {
@@ -13,6 +13,6 @@ public class Env {
     super.finalize();
   }
   private long nativeHandle;
-  private native void initHandle();
+  private native void initHandle(LoggingLevel loggingLevel, String logId);
   public native void dispose();
 }

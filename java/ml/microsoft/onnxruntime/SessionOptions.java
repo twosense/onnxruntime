@@ -2,7 +2,7 @@ package ml.microsoft.onnxruntime;
 
 public class SessionOptions {
   static {
-    System.loadLibrary("onnxruntime_jni");
+    System.loadLibrary("onnxruntime-jni");
   }
   public SessionOptions() {
     initHandle();
@@ -15,4 +15,5 @@ public class SessionOptions {
   private long nativeHandle;
   private native void initHandle();
   public native void dispose();
+  public native void appendNnapiExecutionProvider();
 }

@@ -1,14 +1,12 @@
 package ml.microsoft.onnxruntime;
 
-public class AllocatorInfo {
+public class TypeInfo {
   static {
     System.loadLibrary("onnxruntime-jni");
   }
-  public native static AllocatorInfo createCpu(AllocatorType allocatorType, MemType memType);
-
-  private AllocatorInfo() {
+  private TypeInfo() {
   }
-
   private long nativeHandle;
   public native void dispose();
+  public native TensorTypeAndShapeInfo getTensorTypeAndShapeInfo();
 }
