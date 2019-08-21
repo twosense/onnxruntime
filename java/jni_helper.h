@@ -24,18 +24,17 @@ inline void setHandle(JNIEnv* env, jobject obj, void* t) {
   env->SetLongField(obj, getHandleField(env, obj), handle);
 }
 
-inline std::string JStringtoStdString(JNIEnv* env, jstring j_str) {
+inline std::string javaStringtoStdString(JNIEnv* env, jstring j_str) {
   const char* native_char_ptr = env->GetStringUTFChars(j_str, nullptr);
   std::string native_str(native_char_ptr);
   env->ReleaseStringUTFChars(j_str, native_char_ptr);
   return native_str;
 }
 
-inline jint enumToInt(JNIEnv* env, jobject enum_obj, const char* class_name) {
-  return env->CallIntMethod(enum_obj,
-                            env->GetMethodID(
-                                env->FindClass(class_name),
-                                "ordinal", "()I"));
+template <typename T>
+T javaEnumToCEnum(JNIEnv* env, jobject enum_obj, const char* class_name) {
+  return static_cast<T>(env->CallIntMethod(enum_obj,
+                                           env->GetMethodID(env->FindClass(class_name), "ordinal", "()I")));
 }
 
 inline jobject newObject(JNIEnv* env, const char* class_name, void* handle) {
