@@ -15,7 +15,9 @@ public class Value {
   }
   private long nativeHandle;
   public native void dispose();
-  public native static Value createTensor(AllocatorInfo allocatorInfo, ByteBuffer data, long[] shape, TensorElementDataType type);
-  public native ByteBuffer getTensorMutableData();
-  public native TensorTypeAndShapeInfo getTensorTypeAndShapeInfo();
+  public native static Value createTensor(AllocatorInfo allocatorInfo, ByteBuffer data,
+      long[] shape, TensorElementDataType type)
+      throws OrtException;
+  public native ByteBuffer getTensorMutableData() throws OrtException;
+  public native TensorTypeAndShapeInfo getTensorTypeAndShapeInfo() throws OrtException;
 }

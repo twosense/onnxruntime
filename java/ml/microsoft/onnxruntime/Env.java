@@ -4,7 +4,7 @@ public class Env {
   static {
     System.loadLibrary("onnxruntime-jni");
   }
-  public Env(LoggingLevel loggingLevel, String logId) {
+  public Env(LoggingLevel loggingLevel, String logId) throws OrtException {
     initHandle(loggingLevel, logId);
   }
   @Override
@@ -13,6 +13,6 @@ public class Env {
     super.finalize();
   }
   private long nativeHandle;
-  private native void initHandle(LoggingLevel loggingLevel, String logId);
+  private native void initHandle(LoggingLevel loggingLevel, String logId) throws OrtException;
   public native void dispose();
 }

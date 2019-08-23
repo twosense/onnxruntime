@@ -8,7 +8,7 @@ public class TensorTypeAndShapeInfo {
   }
   private long nativeHandle;
   public native void dispose();
-  public native long[] getShape();
-  public native long getDimensionsCount();
-  public native long getElementCount();
+  public native long[] getShape() throws OrtException;
+  public native long getDimensionsCount() throws OrtException;
+  public native long getElementCount() throws OrtException;
 }

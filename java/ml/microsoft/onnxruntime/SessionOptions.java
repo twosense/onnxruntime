@@ -4,7 +4,7 @@ public class SessionOptions {
   static {
     System.loadLibrary("onnxruntime-jni");
   }
-  public SessionOptions() {
+  public SessionOptions() throws OrtException {
     initHandle();
   }
   @Override
@@ -13,7 +13,7 @@ public class SessionOptions {
     super.finalize();
   }
   private long nativeHandle;
-  private native void initHandle();
+  private native void initHandle() throws OrtException;
   public native void dispose();
-  public native void appendNnapiExecutionProvider();
+  public native void appendNnapiExecutionProvider() throws OrtException;
 }

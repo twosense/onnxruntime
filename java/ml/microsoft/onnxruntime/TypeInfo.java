@@ -8,5 +8,5 @@ public class TypeInfo {
   }
   private long nativeHandle;
   public native void dispose();
-  public native TensorTypeAndShapeInfo getTensorTypeAndShapeInfo();
+  public native TensorTypeAndShapeInfo getTensorTypeAndShapeInfo() throws OrtException;
 }

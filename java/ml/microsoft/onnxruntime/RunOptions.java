@@ -4,7 +4,7 @@ public class RunOptions {
   static {
     System.loadLibrary("onnxruntime-jni");
   }
-  public RunOptions() {
+  public RunOptions() throws OrtException {
     initHandle();
   }
   @Override
@@ -13,6 +13,6 @@ public class RunOptions {
     super.finalize();
   }
   private long nativeHandle;
-  private native void initHandle();
+  private native void initHandle() throws OrtException;
   public native void dispose();
 }
