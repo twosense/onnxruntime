@@ -1,10 +1,10 @@
 #include "jni_helper.h"
 
-#include "onnxruntime_cxx_api.h"
-#include <core/providers/nnapi/nnapi_provider_factory.h>
-
 #include <vector>
+
 #include <android/log.h>
+#include <core/providers/nnapi/nnapi_provider_factory.h>
+#include <onnxruntime_cxx_api.h>
 
 #define ORT_JAVA_API_IMPL_BEGIN \
   try {
@@ -21,8 +21,8 @@
     env->Throw(j_ort_exception);                                                                           \
   }
 
-#define ORT_JAVA_API_IMPL_END_RETURN \
-  ORT_JAVA_API_IMPL_END              \
+#define ORT_JAVA_API_IMPL_END_WITH_RETURN \
+  ORT_JAVA_API_IMPL_END                   \
   return 0;
 
 extern "C" JNIEXPORT void JNICALL
@@ -183,7 +183,7 @@ Java_ml_microsoft_onnxruntime_Session_run(JNIEnv* env, jobject obj /* this */,
     env->SetObjectArrayElement(j_value_arr, i, newObject(env, class_name, output_values[i]));
   }
   return j_value_arr;
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -193,7 +193,7 @@ Java_ml_microsoft_onnxruntime_Session_getInputCount(JNIEnv* env, jobject obj /* 
   size_t count;
   ORT_THROW_ON_ERROR(OrtSessionGetInputCount(session, &count));
   return count;
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -203,7 +203,7 @@ Java_ml_microsoft_onnxruntime_Session_getOutputCount(JNIEnv* env, jobject obj /*
   size_t count;
   ORT_THROW_ON_ERROR(OrtSessionGetOutputCount(session, &count));
   return count;
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -215,7 +215,7 @@ Java_ml_microsoft_onnxruntime_Session_getInputName(JNIEnv* env, jobject obj /* t
   char* name;
   ORT_THROW_ON_ERROR(OrtSessionGetInputName(session, index, allocator, &name));
   return env->NewStringUTF(name);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -227,7 +227,7 @@ Java_ml_microsoft_onnxruntime_Session_getOutputName(JNIEnv* env, jobject obj /* 
   char* name;
   ORT_THROW_ON_ERROR(OrtSessionGetOutputName(session, index, allocator, &name));
   return env->NewStringUTF(name);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -238,7 +238,7 @@ Java_ml_microsoft_onnxruntime_Session_getInputTypeInfo(JNIEnv* env, jobject obj 
   OrtTypeInfo* info;
   ORT_THROW_ON_ERROR(OrtSessionGetInputTypeInfo(session, index, &info));
   return newObject(env, "ml/microsoft/onnxruntime/TypeInfo", info);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -249,7 +249,7 @@ Java_ml_microsoft_onnxruntime_Session_getOutputTypeInfo(JNIEnv* env, jobject obj
   OrtTypeInfo* info;
   ORT_THROW_ON_ERROR(OrtSessionGetOutputTypeInfo(session, index, &info));
   return newObject(env, "ml/microsoft/onnxruntime/TypeInfo", info);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -260,7 +260,7 @@ Java_ml_microsoft_onnxruntime_TypeInfo_getTensorTypeAndShapeInfo(JNIEnv* env, jo
   ORT_THROW_ON_ERROR(OrtCastTypeInfoToTensorInfo(session, &out));
   return newObject(env, "ml/microsoft/onnxruntime/TensorTypeAndShapeInfo",
                    const_cast<OrtTensorTypeAndShapeInfo*>(out));
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -279,7 +279,7 @@ Java_ml_microsoft_onnxruntime_Value_createTensor(JNIEnv* env, jobject /* this */
   ORT_THROW_ON_ERROR(OrtCreateTensorWithDataAsOrtValue(allocator_info, data_ptr, data_len,
                                                        shape_ptr, shape_len, type, &out));
   return newObject(env, "ml/microsoft/onnxruntime/Value", out);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -294,7 +294,7 @@ Java_ml_microsoft_onnxruntime_Value_getTensorMutableData(JNIEnv* env, jobject ob
   ORT_THROW_ON_ERROR(OrtGetTensorShapeElementCount(info, &count));
   auto byte_buf = env->NewDirectByteBuffer(out, count * 4);
   return byte_buf;
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -305,7 +305,7 @@ Java_ml_microsoft_onnxruntime_Value_getTensorTypeAndShapeInfo(JNIEnv* env, jobje
   ORT_THROW_ON_ERROR(OrtGetTensorTypeAndShape(value, &info));
 
   return newObject(env, "ml/microsoft/onnxruntime/TensorTypeAndShapeInfo", info);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -317,7 +317,7 @@ Java_ml_microsoft_onnxruntime_TensorTypeAndShapeInfo_getElementCount(JNIEnv* env
   ORT_THROW_ON_ERROR(OrtGetTensorShapeElementCount(info, &count));
 
   return static_cast<jlong>(count);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jlongArray JNICALL
@@ -333,7 +333,7 @@ Java_ml_microsoft_onnxruntime_TensorTypeAndShapeInfo_getShape(JNIEnv* env, jobje
   env->SetLongArrayRegion(j_shape, 0, count, shape);
 
   return j_shape;
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jlong JNICALL
@@ -345,7 +345,7 @@ Java_ml_microsoft_onnxruntime_TensorTypeAndShapeInfo_getDimensionsCount(JNIEnv* 
   ORT_THROW_ON_ERROR(OrtGetDimensionsCount(info, &count));
 
   return static_cast<jlong>(count);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -359,7 +359,7 @@ Java_ml_microsoft_onnxruntime_AllocatorInfo_createCpu(JNIEnv* env, jobject /* th
   ORT_THROW_ON_ERROR(OrtCreateCpuAllocatorInfo(allocator_type_value,
                                                mem_type_value, &allocator_info));
   return newObject(env, "ml/microsoft/onnxruntime/AllocatorInfo", allocator_info);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -368,7 +368,7 @@ Java_ml_microsoft_onnxruntime_Allocator_createDefault(JNIEnv* env, jobject /* th
   OrtAllocator* allocator;
   ORT_THROW_ON_ERROR(OrtCreateDefaultAllocator(&allocator));
   return newObject(env, "ml/microsoft/onnxruntime/Allocator", allocator);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -378,7 +378,7 @@ Java_ml_microsoft_onnxruntime_Allocator_alloc(JNIEnv* env, jobject obj, jlong si
   void* buf;
   ORT_THROW_ON_ERROR(OrtAllocatorAlloc(allocator, size, &buf));
   return env->NewDirectByteBuffer(buf, size);
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -397,5 +397,5 @@ Java_ml_microsoft_onnxruntime_Allocator_getInfo(JNIEnv* env, jobject obj) {
   const OrtAllocatorInfo* info;
   ORT_THROW_ON_ERROR(OrtAllocatorGetInfo(allocator, &info));
   return newObject(env, "ml/microsoft/onnxruntime/AllocatorInfo", const_cast<OrtAllocatorInfo*>(info));
-  ORT_JAVA_API_IMPL_END_RETURN
+  ORT_JAVA_API_IMPL_END_WITH_RETURN
 }
